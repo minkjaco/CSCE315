@@ -363,7 +363,7 @@ class Database {
 		}
 		else{
 			
-			$answer = $data[int(count($data)/2)];
+			$answer = $data[count($data)/2];
 			
 		}
 		
