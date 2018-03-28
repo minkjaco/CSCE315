@@ -23,6 +23,7 @@ tr:nth-child(even) {
 <?php
 
 include('DbConnect.php');
+date_default_timezone_set('America/Chicago');
 
 $db = new Database('database.cse.tamu.edu', 'minkjaco', 'minkjaco', 'jacobmink123');
 $db->setTable('Test2');
@@ -117,25 +118,21 @@ echo("<br><br><br>\n");
 
 echo("Test 7: Get median in ranges(even number of entries)<br>\n");
 try {
-	$data = $db->MedianInHourRange("Time", "2018-02-20 00:00:00", "2018-03-22 00:00:00", 13, 15);
+	$data = $db->MedianInHourRange("Time", "2018-03-20 00:00:00", "2018-03-21 00:00:00", 13, 15);
 } catch (Exception $e) {
 	echo($e->getMessage()."<br>\n");
 }
-foreach ($data as $d) {
-	echo("Data: $d<br>\n");
-}
+echo("Data: $data<br>\n");
 echo("<br><br><br>\n");
 
 
 echo("Test 7: Get median in ranges(odd number of entries)<br>\n");
 try {
-	$data = $db->MedianInHourRange("Time", "2018-02-20 00:00:00", "2018-03-28 00:00:00", 13, 19);
+	$data = $db->MedianInHourRange("Time", "2018-03-27 00:00:00", "2018-03-29 00:00:00", 15, 19);
 } catch (Exception $e) {
 	echo($e->getMessage()."<br>\n");
 }
-foreach ($data as $d) {
-	echo("Data: $d<br>\n");
-}
+echo("Data: $data<br>\n");
 echo("<br><br><br>\n");
 
 

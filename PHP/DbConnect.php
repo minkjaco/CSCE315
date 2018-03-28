@@ -226,7 +226,7 @@ class Database {
 			foreach (range(0, count($rangeCols)-1) as $i) {
 				echo('<td>'.$lowsS[$j][$i].'</td><td>'.$highsS[$j][$i].'</td>');
 			}
-			echo('<td>'.$datapoints[$j].'</td>\n');
+			echo('<td>'.$datapoints[$j].'</td>');
 			echo("</tr>\n");
 		}
 		echo ("</table>\n");
@@ -355,16 +355,15 @@ class Database {
 		}
 		
 		asort($data);
-		
+		$count = count($data);
+		$mid = floor(($count - 1)/2);
 		if(count($data)%2 == 0){
-			
-			$answer = ($data[count($data)/2 - 1] + $data[count($data)/2])/2;
-			
+			$low = $data[$mid];
+			$high = $data[$mid + 1];
+			$answer = (($low + $high) / 2);
 		}
 		else{
-			
-			$answer = $data[count($data)/2];
-			
+			$answer = $data[$mid];
 		}
 		
 		return $answer;
