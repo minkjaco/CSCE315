@@ -146,32 +146,20 @@ class Arduino:
 		
 	def genericRead(self, sensor):
 		val = 0
-		while (true):
-			raw = self.readline().decode('utf-8')
+		while (True):
+			raw = self.ser.readline().decode('utf-8')
 			if raw is None:
 				self.log.write('{} Read Error in read'.format(Arduino.curTime()))
-				continue
+				return False
 			conditioned = raw.strip()
 			if conditioned is '':
 				self.log.write("{} Read Error in read".format(Arduino.curTime()))
-				continue
+				return False
 			if conditioned[0] is sensor:
 				val = float(conditioned[1:])
 				break
-		if val > self.distance:
+		print("{} vs. {}".format(val, self.baseDistance))
+		if val > self.baseDistance:
 			return True
 		return False
-		
-	def loop(self):
-		timeout = time.time() + 2
-		while (True):
-			if (genericRead('A')):
-				while(True):
-					if (genericRead('B')):
-						#send data
-						pass
-					if (genericRead('A')):
-						timeout += 1
-					if time.time() > timeout:
-						break
 		
