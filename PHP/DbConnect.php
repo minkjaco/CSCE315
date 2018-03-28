@@ -337,6 +337,62 @@ class Database {
 		}
 		return $data;
 	}
+	
+	
+	function MedianInHourRange($rangeCol, $low, $high, $hour_low, $hour_high)
+	{
+		$current_low = date("Y-m-d H:i:s", strtotime("+$hour_low hours", strtotime($low)));
+		$current_high = date("Y-m-d H:i:s", strtotime("+$hour_high hours", strtotime($low)));
+		
+		$data = array();
+		
+		$answer = 0;
+		
+		while ($current_high <= $high) {
+			array_push($data, $this->GetTotalRange($rangeCol, "'" . $current_low . "'", "'" . $current_high . "'"));
+			$current_low = date("Y-m-d H:i:s", strtotime("+1 day", strtotime($current_low)));
+			$current_high = date("Y-m-d H:i:s", strtotime("+1 day", strtotime($current_high)));
+		}
+		
+		asort($data);
+		
+		if(count($data)%2 == 0){
+			
+			$answer = ($data[count($data)/2 - 1] + $data[count($data)/2])/2;
+			
+		}
+		else{
+			
+			$answer = $data[int(count($data)/2)];
+			
+		}
+		
+		return $answer;
+	}
+	
+	
+	function ModeInHourRange($rangeCol, $low, $high, $hour_low, $hour_high)
+	{
+		$current_low = date("Y-m-d H:i:s", strtotime("+$hour_low hours", strtotime($low)));
+		$current_high = date("Y-m-d H:i:s", strtotime("+$hour_high hours", strtotime($low)));
+		
+		$data = array();
+		
+		$answer = 0;
+		
+		while ($current_high <= $high) {
+			array_push($data, $this->GetTotalRange($rangeCol, "'" . $current_low . "'", "'" . $current_high . "'"));
+			$current_low = date("Y-m-d H:i:s", strtotime("+1 day", strtotime($current_low)));
+			$current_high = date("Y-m-d H:i:s", strtotime("+1 day", strtotime($current_high)));
+		}
+		
+		asort($data);
+		
+		$values = array_count_values($data); 
+		$answer = array_search(max($values), $values);
+		
+		return $answer;
+	}
 }
 
 ?>

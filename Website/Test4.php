@@ -104,5 +104,39 @@ try {
 }
 echo("<br><br><br>\n");
 
+echo("Test 6: Get mode in ranges<br>\n");
+try {
+	$data = $db->MaxInHourRanges("Time", "2018-02-20 00:00:00", "2018-03-22 00:00:00", array(13, 15, 17), array(15, 17, 19));
+} catch (Exception $e) {
+	echo($e->getMessage()."<br>\n");
+}
+foreach ($data as $d) {
+	echo("Data: $d<br>\n");
+}
+echo("<br><br><br>\n");
+
+echo("Test 7: Get median in ranges(even number of entries)<br>\n");
+try {
+	$data = $db->MedianInHourRange("Time", "2018-02-20 00:00:00", "2018-03-22 00:00:00", 13, 15);
+} catch (Exception $e) {
+	echo($e->getMessage()."<br>\n");
+}
+foreach ($data as $d) {
+	echo("Data: $d<br>\n");
+}
+echo("<br><br><br>\n");
+
+
+echo("Test 7: Get median in ranges(odd number of entries)<br>\n");
+try {
+	$data = $db->MedianInHourRange("Time", "2018-02-20 00:00:00", "2018-03-28 00:00:00", 13, 19);
+} catch (Exception $e) {
+	echo($e->getMessage()."<br>\n");
+}
+foreach ($data as $d) {
+	echo("Data: $d<br>\n");
+}
+echo("<br><br><br>\n");
+
 
 ?>
