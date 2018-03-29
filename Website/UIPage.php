@@ -15,8 +15,111 @@ input[type=submit] {
 <form action="/minkjaco/Project/results.php" method="POST">
 <h3>Select range:</h3>
 <table>
-<tr><td>Low:</td><td><input type="datetime-local" name="low"></td></tr>
-<tr><td>High:</td><td><input type="datetime-local" name="high"></td></tr>
+<tr>
+	<td>
+	Year: 
+	<select name="year_low">
+	<?php 
+	for ($i=2018; $i < 2099; $i += 1) {
+		echo("<option value=\"$i\">$i</option>");
+	}
+	?>
+	</select>
+	</td>
+	<td>
+	Month: 
+	<select name="month_low">
+	<?php
+	for ($i = 1; $i < 13; $i += 1) {
+		echo("<option value=\"$i\">$i</option>");
+	}
+	?>
+	</select>
+	</td>
+	<td>
+	Day: 
+	<select name="day_low">
+	<?php
+	for ($i = 0; $i < 31; $i += 1) {
+		echo("<option value=\"$i\">$i</option>");
+	}
+	?>
+	</select>
+	</td>
+	<td>
+	Time: 
+	<select name="hour_low">
+	<?php
+	for ($i = 0; $i < 24; $i += 1) {
+		echo("<option value=\"$i\">$i</option>");
+	}
+	?>
+	</select>
+	</td>
+	<td>
+	:
+	<select name="minute_low">
+	<?php
+	for ($i = 0; $i < 60; $i += 1) {
+		echo("<option value=\"$i\">$i</option>");
+	}
+	?>
+	</select>
+	</td>
+	<td>
+	 to 
+	</td>
+		<td>
+	Year: 
+	<select name="year_high">
+	<?php 
+	for ($i=2018; $i < 2099; $i += 1) {
+		echo("<option value=\"$i\">$i</option>");
+	}
+	?>
+	</select>
+	</td>
+	<td>
+	Month: 
+	<select name="month_high">
+	<?php
+	for ($i = 1; $i < 13; $i += 1) {
+		echo("<option value=\"$i\">$i</option>");
+	}
+	?>
+	</select>
+	</td>
+	<td>
+	Day: 
+	<select name="day_high">
+	<?php
+	for ($i = 0; $i < 31; $i += 1) {
+		echo("<option value=\"$i\">$i</option>");
+	}
+	?>
+	</select>
+	</td>
+	<td>
+	Time: 
+	<select name="hour_high">
+	<?php
+	for ($i = 0; $i < 24; $i += 1) {
+		echo("<option value=\"$i\">$i</option>");
+	}
+	?>
+	</select>
+	</td>
+	<td>
+	:
+	<select name="minute_high">
+	<?php
+	for ($i = 0; $i < 60; $i += 1) {
+		echo("<option value=\"$i\">$i</option>");
+	}
+	?>
+	</select>
+	</td>
+<tr>
 </table>
 <br>
 <h3>Action:</h3>
