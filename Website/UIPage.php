@@ -40,7 +40,7 @@ input[type=submit] {
 	Day: 
 	<select name="day_low">
 	<?php
-	for ($i = 0; $i < 31; $i += 1) {
+	for ($i = 1; $i < 32; $i += 1) {
 		echo("<option value=\"$i\">$i</option>");
 	}
 	?>
@@ -73,7 +73,7 @@ input[type=submit] {
 	Year: 
 	<select name="year_high">
 	<?php 
-	for ($i=2018; $i < 2099; $i += 1) {
+	for ($i=2018; $i <= 2099; $i += 1) {
 		echo("<option value=\"$i\">$i</option>");
 	}
 	?>
@@ -93,7 +93,7 @@ input[type=submit] {
 	Day: 
 	<select name="day_high">
 	<?php
-	for ($i = 0; $i < 31; $i += 1) {
+	for ($i = 1; $i < 32; $i += 1) {
 		echo("<option value=\"$i\">$i</option>");
 	}
 	?>

@@ -23,15 +23,15 @@ void loop() {
   digitalWrite(pinEnterTrig, LOW);
   float en = (pulseIn(pinEnterEcho, HIGH)/2)/29.1;
 
-  /*
+  
   digitalWrite(pinExitTrig, HIGH);
   delayMicroseconds(10);
   digitalWrite(pinExitTrig, LOW);
   float ex = (pulseIn(pinExitEcho, HIGH)/2)/29.1;
-  */
+  
   
   Serial.print("A");
   Serial.println(en);
   Serial.print("B");
-  Serial.println(10000);
+  Serial.println(ex);
 }
