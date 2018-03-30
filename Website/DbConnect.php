@@ -161,6 +161,21 @@ class Database {
 		return $count[0];
 	}
 	
+	/*
+	int[] GetDataPointsInRange(String rangeCol, String[] lows, String[] highs)
+	get the records in the table within a certain range
+	
+	Preconditions:
+	Database is connected
+	SetTable has been called
+	
+	Postconditions:
+	Query is executed (or exception thrown)
+	Returns value of count result
+	
+	Exceptions:
+	Generic Exception - range error, invalid query, or fetching error
+	*/
 	function GetDataPointsInRange($rangeCol, $lows, $highs)
 	{
 		if (count($lows) != count($highs)) {
@@ -174,8 +189,26 @@ class Database {
 		return $datapoints;
 	}
 	
+	/*
+	int PrintDataPoints(String rangeCol, String[] lows, String[] highs)
+	display the records in a table format
+	
+	Preconditions:
+	Database is connected
+	SetTable has been called
+	Some form of table styling is defined
+	
+	Postconditions:
+	Displays table in HTML
+	
+	Exceptions:
+	Generic Exception - range error
+	*/
 	function PrintDataPoints($rangeCol, $lows, $highs)
 	{
+		if (count($lows) != count($highs)) {
+			throw new Exception("Dimension of range arrays do not agree");
+		}
 		$datapoints = GetDataPointsInRange($rangeCol, $lows, $highs);
 		echo ("<table>\n");
 		echo ("<tr>\n<th>Low</th>\n<th>High</th>\n<th>Count</th>\n</tr>\n");
@@ -185,8 +218,25 @@ class Database {
 		echo ("</table>\n");
 	}
 	
+	/*
+	int Multi_GetTotalRange(String[] rangeCols, String[] lows, String[] highs)
+	Get the total number of records across several ranges
+	
+	Preconditions:
+	Database is connected
+	SetTable has been called
+	
+	Postconditions:
+	Returns count across each range as a single number
+	
+	Exceptions:
+	Generic Exception - range error
+	*/
 	function Multi_GetTotalRange($rangeCols, $lows, $highs)
 	{
+		if (count($lows) != count($highs)) {
+			throw new Exception("Dimension of range arrays do not agree");
+		}
 		$sql = "SELECT count(*) FROM `$this->m_tblname` WHERE ";
 		foreach (range(0, count($rangeCols)-1) as $i)
 		{
@@ -203,8 +253,26 @@ class Database {
 		return $count[0];
 	}
 	
+	/*
+	int Multi_PrintDataPoints(String[] rangeCols, String[] lows, String[] highs)
+	display the records in a table format from several ranges
+	
+	Preconditions:
+	Database is connected
+	SetTable has been called
+	Some form of table styling is defined
+	
+	Postconditions:
+	Displays table in HTML
+	
+	Exceptions:
+	Generic Exception - range error
+	*/
 	function Multi_PrintDataPoints($rangeCols, $lowsS, $highsS)
 	{
+		if (count($lowsS) != count($highsS)) {
+			throw new Exception("Dimension of range arrays do not agree");
+		}
 		$datapoints = array();
 		foreach (range(0, count($lowsS)-1) as $i)
 		{
@@ -232,8 +300,25 @@ class Database {
 		echo ("</table>\n");
 	}
 	
+	/*
+	int Multi_AverageInRange(String[] rangeCols, String[] lows, String[] highs)
+	Get the average number of records from several ranges
+	
+	Preconditions:
+	Database is connected
+	SetTable has been called
+	
+	Postconditions:
+	Returns averages
+	
+	Exceptions:
+	Generic Exception - range error
+	*/
 	function Multi_AverageInRange($rangeCols, $lows, $highs)
 	{
+		if (count($lows) != count($highs)) {
+			throw new Exception("Dimension of range arrays do not agree");
+		}
 		$sql = "SELECT AVG(COUNT) FROM (SELECT COUNT(*) AS COUNT FROM `$this->m_tblname` WHERE ";
 		foreach (range(0, count($rangeCols)-1) as $i)
 		{
@@ -257,8 +342,28 @@ class Database {
 		return $avg[0];
 	}
 	
+	/*
+	int AverageInHourRange(String rangeCol, String low, String high, int hour_low, int hour_high)
+	Get the average number of records from low to high, between hour_low and hour_high
+	
+	Preconditions:
+	Database is connected
+	SetTable has been called
+	
+	Postconditions:
+	returns the average number of records
+	
+	Exceptions:
+	Generic Exception - range error on dates or hours
+	*/
 	function AverageInHourRange($rangeCol, $low, $high, $hour_low, $hour_high)
 	{
+		if (strcmp($low > $high) > 0) {
+			throw new Exception("Dates must be chronological");
+		}
+		if (strcmp($hour_low, $hour_high) > 0) {
+			throw new Exception("Hours must be chronological");
+		}
 		$current_low = date("Y-m-d H:i:s", strtotime("+$hour_low hours", strtotime($low)));
 		$current_high = date("Y-m-d H:i:s", strtotime("+$hour_high hours", strtotime($low)));
 		
@@ -275,17 +380,55 @@ class Database {
 		return $sum / $count;
 	}
 	
+	/*
+	int AverageInHourRanges(String rangeCol, String low, String high, int[] hour_lows, int[] hour_highs)
+	Get the average number of records from low to high, between hour_lows and hour_highs as an array
+	
+	Preconditions:
+	Database is connected
+	SetTable has been called
+	
+	Postconditions:
+	returns the average number of records
+	
+	Exceptions:
+	Generic Exception - range error on dates or hours
+	*/
 	function AverageInHourRanges($rangeCol, $low, $high, $hour_lows, $hour_highs)
 	{
 		$data = array();
 		foreach (range(0, count($hour_lows)-1) as $i) {
-			array_push($data, $this->AverageInHourRange($rangeCol, $low, $high, $hour_lows[$i], $hour_highs[$i]));
+			try {
+				array_push($data, $this->AverageInHourRange($rangeCol, $low, $high, $hour_lows[$i], $hour_highs[$i]));
+			} catch (Exception $e) {
+				throw new Exception($e->GetMessage());
+			}
 		}
 		return $data;
 	}
 	
+	/*
+	int MaxInHourRange(String rangeCol, String low, String high, int hour_low, int hour_high)
+	Get the max number of records from dates low to high, between hour_low and hour_high
+	
+	Preconditions:
+	Database is connected
+	SetTable has been called
+	
+	Postconditions:
+	returns the max number of records
+	
+	Exceptions:
+	Generic Exception - range error on dates or hours
+	*/
 	function MaxInHourRange($rangeCol, $low, $high, $hour_low, $hour_high)
 	{
+		if (strcmp($low > $high) > 0) {
+			throw new Exception("Dates must be chronological");
+		}
+		if (strcmp($hour_low, $hour_high) > 0) {
+			throw new Exception("Hours must be chronological");
+		}
 		$current_low = date("Y-m-d H:i:s", strtotime("+$hour_low hours", strtotime($low)));
 		$current_high = date("Y-m-d H:i:s", strtotime("+$hour_high hours", strtotime($low)));
 		
@@ -302,17 +445,55 @@ class Database {
 		return $max;
 	}
 	
+	/*
+	int MaxInHourRanges(String rangeCol, String low, String high, int[] hour_lows, int[] hour_highs)
+	Get the max number of records from dates low to high, between hour_lows and hour_highs as an array
+	
+	Preconditions:
+	Database is connected
+	SetTable has been called
+	
+	Postconditions:
+	returns the max number of records as an array
+	
+	Exceptions:
+	Generic Exception - range error on dates or hours
+	*/
 	function MaxInHourRanges($rangeCol, $low, $high, $hour_lows, $hour_highs)
 	{
 		$data = array();
 		foreach (range(0, count($hour_lows)-1) as $i) {
-			array_push($data, $this->MaxInHourRange($rangeCol, $low, $high, $hour_lows[$i], $hour_highs[$i]));
+			try {
+				array_push($data, $this->MaxInHourRange($rangeCol, $low, $high, $hour_lows[$i], $hour_highs[$i]));
+			} catch (Exception $e) {
+				throw new Exception($e->GetMessage());
+			}
 		}
 		return $data;
 	}
 	
+	/*
+	int MinInHourRange(String rangeCol, String low, String high, int hour_low, int hour_high)
+	Get the min number of records from dates low to high, between hour_low and hour_high
+	
+	Preconditions:
+	Database is connected
+	SetTable has been called
+	
+	Postconditions:
+	returns the min number of records
+	
+	Exceptions:
+	Generic Exception - range error on dates or hours
+	*/
 	function MinInHourRange($rangeCol, $low, $high, $hour_low, $hour_high)
 	{
+		if (strcmp($low > $high) > 0) {
+			throw new Exception("Dates must be chronological");
+		}
+		if (strcmp($hour_low, $hour_high) > 0) {
+			throw new Exception("Hours must be chronological");
+		}
 		$current_low = date("Y-m-d H:i:s", strtotime("+$hour_low hours", strtotime($low)));
 		$current_high = date("Y-m-d H:i:s", strtotime("+$hour_high hours", strtotime($low)));
 		
@@ -329,18 +510,55 @@ class Database {
 		return $min;
 	}
 	
+	/*
+	int MinInHourRanges(String rangeCol, String low, String high, int[] hour_lows, int[] hour_highs)
+	Get the min number of records from dates low to high, between hour_lows and hour_highs as an array
+	
+	Preconditions:
+	Database is connected
+	SetTable has been called
+	
+	Postconditions:
+	returns the min number of records as an array
+	
+	Exceptions:
+	Generic Exception - range error on dates or hours
+	*/
 	function MinInHourRanges($rangeCol, $low, $high, $hour_lows, $hour_highs)
 	{
 		$data = array();
 		foreach (range(0, count($hour_lows)-1) as $i) {
-			array_push($data, $this->MinInHourRange($rangeCol, $low, $high, $hour_lows[$i], $hour_highs[$i]));
+			try {
+				array_push($data, $this->MinInHourRange($rangeCol, $low, $high, $hour_lows[$i], $hour_highs[$i]));
+			} catch (Exception $e) {
+				throw new Exception($e->GetMessage());
+			}
 		}
 		return $data;
 	}
 	
+	/*
+	int MedianInHourRange(String rangeCol, String low, String high, int hour_low, int hour_high)
+	Get the median number of records from dates low to high, between hour_low and hour_high
 	
+	Preconditions:
+	Database is connected
+	SetTable has been called
+	
+	Postconditions:
+	returns the median number of records
+	
+	Exceptions:
+	Generic Exception - range error on dates or hours
+	*/
 	function MedianInHourRange($rangeCol, $low, $high, $hour_low, $hour_high)
 	{
+		if (strcmp($low > $high) > 0) {
+			throw new Exception("Dates must be chronological");
+		}
+		if (strcmp($hour_low, $hour_high) > 0) {
+			throw new Exception("Hours must be chronological");
+		}
 		$current_low = date("Y-m-d H:i:s", strtotime("+$hour_low hours", strtotime($low)));
 		$current_high = date("Y-m-d H:i:s", strtotime("+$hour_high hours", strtotime($low)));
 		
@@ -369,9 +587,28 @@ class Database {
 		return $answer;
 	}
 	
+	/*
+	int ModeInHourRange(String rangeCol, String low, String high, int hour_low, int hour_high)
+	Get the mode number of records from dates low to high, between hour_low and hour_high
 	
+	Preconditions:
+	Database is connected
+	SetTable has been called
+	
+	Postconditions:
+	returns the mode number of records
+	
+	Exceptions:
+	Generic Exception - range error on dates or hours
+	*/
 	function ModeInHourRange($rangeCol, $low, $high, $hour_low, $hour_high)
 	{
+		if (strcmp($low > $high) > 0) {
+			throw new Exception("Dates must be chronological");
+		}
+		if (strcmp($hour_low, $hour_high) > 0) {
+			throw new Exception("Hours must be chronological");
+		}
 		$current_low = date("Y-m-d H:i:s", strtotime("+$hour_low hours", strtotime($low)));
 		$current_high = date("Y-m-d H:i:s", strtotime("+$hour_high hours", strtotime($low)));
 		
