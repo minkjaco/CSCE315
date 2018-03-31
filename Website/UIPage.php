@@ -12,7 +12,7 @@ input[type=submit] {
 
 <body>
 <h1>PeopleCounter</h1>
-<form action="/minkjaco/Project/results.php" method="POST">
+<form action="/XXXXX/Project/results.php" method="POST">
 <h3>Select range:</h3>
 <table>
 <tr>

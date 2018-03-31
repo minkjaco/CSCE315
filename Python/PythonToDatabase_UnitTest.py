@@ -17,11 +17,11 @@ class TestDatabaseMethods(unittest.TestCase):
 	def test_connect_invalidConnect(self):
 		db = Database.Database()
 		with self.assertRaises(pymysql.OperationalError):
-			db.connect('database.cse.tamu.edu', 'minkjaco', 'jacobmink1', 'minkj')
+			db.connect('database.cse.tamu.edu', 'XXXXX', 'XXXXX', 'XXXXX')
 	def test_connect_validConnect_validTable(self):
 		db = Database.Database()
 		db.setTable(Database.Table('Test', ['Num', 'Time']))
-		db.connect('database.cse.tamu.edu', 'minkjaco', 'jacobmink123', 'minkjaco')
+		db.connect('database.cse.tamu.edu', 'XXXXX', 'XXXXX', 'XXXXX')
 		self.assertNotEqual(db.table, None)
 		self.assertNotEqual(db.connection, None)
 		db.disconnect()
@@ -30,21 +30,21 @@ class TestDatabaseMethods(unittest.TestCase):
 	def test_insert_notAList(self):
 		db = Database.Database()
 		db.setTable(Database.Table('Test', ['Num', 'Time']))
-		db.connect('database.cse.tamu.edu', 'minkjaco', 'jacobmink123', 'minkjaco')
+		db.connect('database.cse.tamu.edu', 'XXXXX', 'XXXXX', 'XXXXX')
 		with self.assertRaises(TypeError):
 			db.insert(1)
 		db.disconnect()
 	def test_insert_notStrings(self):
 		db = Database.Database()
 		db.setTable(Database.Table('Test', ['Num', 'Time']))
-		db.connect('database.cse.tamu.edu', 'minkjaco', 'jacobmink123', 'minkjaco')
+		db.connect('database.cse.tamu.edu', 'XXXXX', 'XXXXX', 'XXXXX')
 		with self.assertRaises(TypeError):
 			db.insert([1, 2, 3])
 		db.disconnect()
 	def test_insert_badDimensions(self):
 		db = Database.Database()
 		db.setTable(Database.Table('Test', ['Num', 'Time']))
-		db.connect('database.cse.tamu.edu', 'minkjaco', 'jacobmink123', 'minkjaco')
+		db.connect('database.cse.tamu.edu', 'XXXXX', 'XXXXX', 'XXXXX')
 		with self.assertRaises(ValueError):
 			db.insert(["1", "2", "3"])
 		db.disconnect()

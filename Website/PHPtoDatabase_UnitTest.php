@@ -28,7 +28,7 @@ echo("Test 1: Invalid Database constructor input<br>\n");
 echo("Expect: Exception from incorrect password<br>\n");
 $db;
 try {
-	$db = new Database('database.cse.tamu.edu', 'minkjaco', 'minkjaco', 'abcd');
+	$db = new Database('database.cse.tamu.edu', 'XXXXX', 'XXXXX', 'XXXXX');
 } catch (Exception $e) {
 	echo($e->getMessage()."<br>\n");
 }
@@ -37,7 +37,7 @@ echo("<br><br><br>\n");
 echo("Test 2: Valid Database constructor input<br>\n");
 echo("Expect: \$db is not null<br>\n");
 try {
-	$db = new Database('database.cse.tamu.edu', 'minkjaco', 'minkjaco', 'jacobmink123');
+	$db = new Database('database.cse.tamu.edu', 'XXXXX', 'XXXXX', 'XXXXX');
 } catch (Exception $e) {
 	echo($e->getMessage()."<br>\n");
 }

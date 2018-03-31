@@ -24,7 +24,7 @@ tr:nth-child(even) {
 
 function printReturn() {
 	echo("<br><br>\n");
-	echo("<form action=\"/minkjaco/Project/UIPage.php\">\n");
+	echo("<form action=\"/XXXXX/Project/UIPage.php\">\n");
 	echo("<input type=\"submit\" value=\"Return\">\n");
 	echo("</form>");
 }
@@ -35,7 +35,7 @@ function printReturn() {
 <?php
 include('DbConnect.php');
 
-$db = new Database('database.cse.tamu.edu', 'minkjaco', 'minkjaco', 'jacobmink123');
+$db = new Database('database.cse.tamu.edu', 'XXXXX', 'XXXXX', 'XXXXX');
 $db->setTable('Test');
 
 $dt_low = $_POST['year_low'] . '-' . str_pad($_POST['month_low'], 2, "0", STR_PAD_LEFT) . '-' . str_pad($_POST['day_low'], 2, "0", STR_PAD_LEFT) . 'T' . str_pad($_POST['hour_low'], 2, "0", STR_PAD_LEFT) . ':' . str_pad($_POST['minute_low'], 2, "0", STR_PAD_LEFT);
