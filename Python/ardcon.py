@@ -155,10 +155,13 @@ class Arduino:
 	# Read Error - serial input read issue
 	def eatSerial(self):
 		timeout = time.time() + 2
-		while time.time() < timeout:
-			if self.ser.readline() is '':
-				self.log.write('{} Read Error in eatSerial'.format(Arduino.curTime()))
-				raise ReadError("Error ignoring serial data")
+		try:
+			while time.time() < timeout:
+				if self.ser.readline() is '':
+					self.log.write('{} Read Error in eatSerial'.format(Arduino.curTime()))
+					raise ReadError("Error ignoring serial data")
+		except Exception as e:
+			raise Exception("{} in eatSerial".format(e))
 	# Postconditions:
 	# Serial input is ignored
 	
