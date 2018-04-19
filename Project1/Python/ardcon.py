@@ -121,7 +121,7 @@ class Arduino:
 	# Instead of raising error, returns False on input the 
 	# serial reader cannot decode
 	def genericRead(self, sensor):
-		if not isinstance(sensor, string) or not (sensor is 'A' or sensor is 'B'):
+		if not isinstance(sensor, str) or not (sensor is 'A' or sensor is 'B'):
 			self.log.write("{} sensor argument error".format(Arduino.curTime()))
 			raise TypeError("sensor argument must be 'A' or 'B'")
 		val = 500.0

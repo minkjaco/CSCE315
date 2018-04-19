@@ -121,13 +121,13 @@ class Database:
 			raise TypeError('values is not a list in insert')
 		elif not all(isinstance(s, str) for s in values):
 			raise TypeError('elements of values are not strings in insert')
-		elif not (len(values) == len(self.m_table.cols)):
+		elif not (len(values) == len(self.m_table.m_cols)):
 			raise ValueError('values dimension must match table dimension')
 			
-		sql = "INSERT INTO " + self.m_table.name + " VALUES ("
+		sql = "INSERT INTO " + self.m_table.m_name + " VALUES ("
 		for i, v in enumerate(values):
 			if len(v) == 0:
-				sql += '\'\''
+				sql += 'NULL'
 			else:
 				sql += v
 			if i != len(values) - 1:
