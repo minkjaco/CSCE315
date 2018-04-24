@@ -4,7 +4,7 @@ int exitTrigPin = 2;
 int exitEchoPin = 3;
 
 // Location values single character [A-Z]
-char m_location;
+int m_location;
 
 void setup() {
   Serial.begin(115200);
@@ -15,7 +15,10 @@ void setup() {
   pinMode(exitTrigPin, OUTPUT);
   pinMode(exitEchoPin, INPUT);
 
-  m_location = 'A';
+  while (Serial.available() <= 0);
+  Serial.flush();
+  
+  m_location = 0;
   Serial.println(m_location);
 }
 
