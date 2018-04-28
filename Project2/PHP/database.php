@@ -74,6 +74,21 @@ class Database
 		if($this->connection->query($sql) !== TRUE)
 				echo("error");
 	}
+	
+	//----------------------------------------------------------
+	// Function: genericQuery
+	// Precondition: Connection is valid
+	// Postcondition: Query is sent to the database
+	//----------------------------------------------------------
+	
+	public function genericQuery($sql, $num) {
+		for ($i = 0; $i < $num; $i++) {
+			if ($this->connection->query($sql) !== TRUE)
+				echo("error<br>\n");
+		}
+	}
+	
+	
 }
 
 ?>

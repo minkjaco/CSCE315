@@ -1,7 +1,9 @@
 #include <pthread.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <errno.h>
 #include "Include/arduino-serial-lib.h"
-#include "Include/Connector/include/mysql.h"
 
 #define		NUM_LOCATIONS		1
 #define		MAX_LOCATIONS		7
@@ -23,12 +25,6 @@ char *ports[] = { "/dev/tty/xxx" };
 // Match type of enter/exit to the port name
 int types[] = { SINGLE_DIR };
 
-char *host = "database.cse.tamu.edu";
-char *database = "minkjaco";
-char *user = "minkjaco";
-char *pass = "jacobmink123";
-
-
 /* SerialThreadArgs
  * port: /dev/tty/xxx is the name of the usb serial port
  * fd: reference to the serial port by integer
@@ -42,7 +38,6 @@ typedef struct SerialThreadArgs {
 	int fd;
 	int loc;
 	int type;
-	MYSQL *db;
 	pthread_mutex_t *m;
 } SerialThreadArgs;
 
@@ -77,8 +72,8 @@ void *serialThread(void *args) {
 			if (readA && val < TRIG_DIST) {
 				sprintf(query, "INSERT INTO %s VALUES(NULL, %d, true, false, CURRENT_TIMESTAMP)", database, sta->loc);
 				pthread_mutex_lock(sta->m);
-				if (mysql_query(sta->db, query) != 0) {
-					printf("Query failed from %d\n", sta->fd);
+				if (execl("C:/Program Files/curl/src/curl.exe", "C:/Program Files/curl/src/curl.exe", "-s", "-X", "POST", "--data-urlencode", sql, "projects.cse.tamu.edu/minkjaco/curlTest.php", (char *)NULL) == -1) {
+					printf("Query failed from %d: %d\n", sta->fd, errno);
 				}
 				pthread_mutex_unlock(sta->m);
 				readA = 0;
@@ -86,8 +81,8 @@ void *serialThread(void *args) {
 			else if (readB && val < TRIG_DIST) {
 				sprintf(query, "INSERT INTO %s VALUES(NULL, %d, false, true, CURRENT_TIMESTAMP)", database, sta->loc);
 				pthread_mutex_lock(sta->m);
-				if (mysql_query(sta->db, query) != 0) {
-					printf("Query failed from %d\n", sta->fd);
+				if (execl("C:/Program Files/curl/src/curl.exe", "C:/Program Files/curl/src/curl.exe", "-s", "-X", "POST", "--data-urlencode", sql, "projects.cse.tamu.edu/minkjaco/curlTest.php", (char *)NULL) == -1) {
+					printf("Query failed from %d: %d\n", sta->fd, errno);
 				}
 				pthread_mutex_unlock(sta->m);
 				readB = 0;
@@ -122,7 +117,7 @@ void *serialThread(void *args) {
 					if (atoi(buf + 1) < TRIG_DIST) {
 						sprintf(query, "INSERT INTO %s VALUES(NULL, %d, true, false, CURRENT_TIMESTAMP)", database, sta->loc);
 						pthread_mutex_lock(sta->m);
-						if (mysql_query(sta->db, query) != 0) {
+						if (execl("C:/Program Files/curl/src/curl.exe", "C:/Program Files/curl/src/curl.exe", "-s", "-X", "POST", "--data-urlencode", sql, "projects.cse.tamu.edu/minkjaco/curlTest.php", (char *)NULL) == -1) {
 							printf("Query failed from %d\n", sta->fd);
 						}
 						pthread_mutex_unlock(sta->m);
@@ -191,17 +186,6 @@ int main() {
 	pthread_t *threads = (pthread_t *)calloc(NUM_LOCATIONS, sizeof(pthread_t));
 	SerialThreadArgs *targs = (SerialThreadArgs *)calloc(NUM_LOCATIONS, sizeof(SerialThreadArgs));
 	
-	// Initialize and connect to MySQL table
-	MYSQL *db;
-	if ((db = mysql_init(db)) == NULL) {
-		printf("Error initializing database object\n");
-		return -1;
-	}
-	if ((db = mysql_real_connect(db, host, user, pass, database, 34, NULL, 0)) == NULL) {
-		printf("Error connecting to database\n");
-		return -1;
-	}
-	
 	// Shared mutex to protect database object across threads
 	pthread_mutex_t m;
 	pthread_mutex_init(&m, NULL);
@@ -212,7 +196,6 @@ int main() {
 		targs[i].fd = fd[i];
 		targs[i].loc = loc[i];
 		targs[i].type = types[loc[i]];
-		targs[i].db = db;
 		targs[i].m = &m;
 		
 		if (pthread_create(threads + i, NULL, serialThread, targs + i) != 0) {
