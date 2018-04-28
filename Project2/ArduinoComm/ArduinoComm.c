@@ -25,6 +25,9 @@ char *ports[] = { "/dev/tty/xxx" };
 // Match type of enter/exit to the port name
 int types[] = { SINGLE_DIR };
 
+char database[] = "minkjaco";
+char *columns[] = { "column1", "column2" };
+
 /* SerialThreadArgs
  * port: /dev/tty/xxx is the name of the usb serial port
  * fd: reference to the serial port by integer
@@ -41,94 +44,107 @@ typedef struct SerialThreadArgs {
 	pthread_mutex_t *m;
 } SerialThreadArgs;
 
+void ReadSingleDir(SerialThreadArgs *sta) {
+	char *buf = calloc(MAX_BUF_SIZE + 1, 1);
+	int res = 0;
+	char *query = calloc(100 + 1, 1);
+	
+	int readA = 1;
+	int readB = 1;
+	
+	while (1) {
+		res = serialport_read_until(sta->fd, buf, '\n', MAX_BUF_SIZE, 200);
+		if (res == -1)
+			printf("Read to port %s, fd %d failed\n", sta->port, sta->fd);
+		else if (res == -2)
+			printf("Read timeout on port %s, fd %d\n", sta->port, sta->fd);
+		
+		float val = atof(buf + 1);
+		if (!readA && buf[0] == 'A' && val >= TRIG_DIST)
+			readA = 1;
+		else if (!readB && buf[0] == 'B' && val >= TRIG_DIST)
+			readB = 1;
+		
+		if (readA && val < TRIG_DIST) {
+			sprintf(query, "INSERT INTO `%s`(`%s`, `%s`) VALUES(NULL, %d, true, false, CURRENT_TIMESTAMP)", database, columns[0], columns[1], sta->loc);
+			pthread_mutex_lock(sta->m);
+			if (execl("C:/Program Files/curl/src/curl.exe", "C:/Program Files/curl/src/curl.exe", "-s", "-X", "POST", "--data-urlencode", query, "projects.cse.tamu.edu/minkjaco/curlTest.php", (char *)NULL) == -1) {
+				printf("Query failed from %d: %d\n", sta->fd, errno);
+			}
+			pthread_mutex_unlock(sta->m);
+			readA = 0;
+		}
+		else if (readB && val < TRIG_DIST) {
+			sprintf(query, "INSERT INTO `%s`(`%s`, `%s`) VALUES(NULL, %d, false, true, CURRENT_TIMESTAMP)", database, columns[0], columns[1], sta->loc);
+			pthread_mutex_lock(sta->m);
+			if (execl("C:/Program Files/curl/src/curl.exe", "C:/Program Files/curl/src/curl.exe", "-s", "-X", "POST", "--data-urlencode", query, "projects.cse.tamu.edu/minkjaco/curlTest.php", (char *)NULL) == -1) {
+				printf("Query failed from %d: %d\n", sta->fd, errno);
+			}
+			pthread_mutex_unlock(sta->m);
+			readB = 0;
+		}
+	}
+}
+
+void ReadDoubleDir(SerialThreadArgs *sta) {
+	char *buf = calloc(MAX_BUF_SIZE + 1, 1);
+	int res = 0;
+	char *query = calloc(100 + 1, 1);
+	
+	while (1) {
+		res = serialport_read_until(sta->fd, buf, '\n', MAX_BUF_SIZE, 200);
+		if (res == -1)
+			printf("Read to port %s, fd %d failed\n", sta->port, sta->fd);
+		else if (res == -2)
+			printf("Read timeout on port %s, fd %d\n", sta->port, sta->fd);
+		
+		if (buf[0] != 'A')
+			continue;
+		if (atoi(buf + 1) < TRIG_DIST) {
+			int tries = 1000;
+			while (tries) {
+				res = serialport_read_until(sta->fd, buf, '\n', MAX_BUF_SIZE, 200);
+				if (res == -1)
+					printf("Read to port %s, fd %d failed\n", sta->port, sta->fd);
+				else if (res == -2)
+					printf("Read timeout on port %s, fd %d\n", sta->port, sta->fd);
+				
+				if (buf[0] != 'B') {
+					tries--;
+					continue;
+				}
+				if (atoi(buf + 1) < TRIG_DIST) {
+					sprintf(query, "INSERT INTO `%s`(`%s`, `%s`) VALUES(NULL, %d, true, false, CURRENT_TIMESTAMP)", database, columns[0], columns[1], sta->loc);
+					pthread_mutex_lock(sta->m);
+					if (execl("C:/Program Files/curl/src/curl.exe", "C:/Program Files/curl/src/curl.exe", "-s", "-X", "POST", "--data-urlencode", query, "projects.cse.tamu.edu/minkjaco/curlTest.php", (char *)NULL) == -1) {
+						printf("Query failed from %d: %d\n", sta->fd, errno);
+					}
+					pthread_mutex_unlock(sta->m);
+					serialport_flush(sta->fd);
+					break;
+				}
+				else
+					tries--;
+			}
+		}
+	}
+}
+
 /* void *serialThread (void *args)
  * Function that handles data collection from an Arduino
  * and pushes to the MySQL database
  */ 
 void *serialThread(void *args) {
-	SerialThreadArgs *sta = (SerialThreadArgs *)args;
-	char *buf = calloc(MAX_BUF_SIZE + 1, 1);
-	int res = 0;
-	char *query = calloc(100 + 1, 1);
-	
 	// Cars exit in one location and enter in another
 	// Simple case
+	SerialThreadArgs *sta = (SerialThreadArgs *)args;
 	if (sta->type == SINGLE_DIR) {
-		int readA = 1;
-		int readB = 1;
-		while (1) {
-			res = serialport_read_until(sta->fd, buf, '\n', MAX_BUF_SIZE, 200);
-			if (res == -1)
-				printf("Read to port %s, fd %d failed\n", sta->port, sta->fd);
-			else if (res == -2)
-				printf("Read timeout on port %s, fd %d\n", sta->port, sta->fd);
-			
-			float val = atof(buf + 1);
-			if (!readA && buf[0] == 'A' && val >= TRIG_DIST)
-				readA = 1;
-			else if (!readB && buf[0] == 'B' && val >= TRIG_DIST)
-				readB = 1;
-			
-			if (readA && val < TRIG_DIST) {
-				sprintf(query, "INSERT INTO %s VALUES(NULL, %d, true, false, CURRENT_TIMESTAMP)", database, sta->loc);
-				pthread_mutex_lock(sta->m);
-				if (execl("C:/Program Files/curl/src/curl.exe", "C:/Program Files/curl/src/curl.exe", "-s", "-X", "POST", "--data-urlencode", sql, "projects.cse.tamu.edu/minkjaco/curlTest.php", (char *)NULL) == -1) {
-					printf("Query failed from %d: %d\n", sta->fd, errno);
-				}
-				pthread_mutex_unlock(sta->m);
-				readA = 0;
-			}
-			else if (readB && val < TRIG_DIST) {
-				sprintf(query, "INSERT INTO %s VALUES(NULL, %d, false, true, CURRENT_TIMESTAMP)", database, sta->loc);
-				pthread_mutex_lock(sta->m);
-				if (execl("C:/Program Files/curl/src/curl.exe", "C:/Program Files/curl/src/curl.exe", "-s", "-X", "POST", "--data-urlencode", sql, "projects.cse.tamu.edu/minkjaco/curlTest.php", (char *)NULL) == -1) {
-					printf("Query failed from %d: %d\n", sta->fd, errno);
-				}
-				pthread_mutex_unlock(sta->m);
-				readB = 0;
-			}
-		}
+		ReadSingleDir(sta);
 	}
 	// Cars exit and enter on the same road
 	// More difficult case, use sequential sensor reads
 	else if (sta->type == DOUBLE_DIR) {
-		while (1) {
-			res = serialport_read_until(sta->fd, buf, '\n', MAX_BUF_SIZE, 200);
-			if (res == -1)
-				printf("Read to port %s, fd %d failed\n", sta->port, sta->fd);
-			else if (res == -2)
-				printf("Read timeout on port %s, fd %d\n", sta->port, sta->fd);
-			
-			if (buf[0] != 'A')
-				continue;
-			if (atoi(buf + 1) < TRIG_DIST) {
-				int tries = 1000;
-				while (tries) {
-					res = serialport_read_until(sta->fd, buf, '\n', MAX_BUF_SIZE, 200);
-					if (res == -1)
-						printf("Read to port %s, fd %d failed\n", sta->port, sta->fd);
-					else if (res == -2)
-						printf("Read timeout on port %s, fd %d\n", sta->port, sta->fd);
-					
-					if (buf[0] != 'B') {
-						tries--;
-						continue;
-					}
-					if (atoi(buf + 1) < TRIG_DIST) {
-						sprintf(query, "INSERT INTO %s VALUES(NULL, %d, true, false, CURRENT_TIMESTAMP)", database, sta->loc);
-						pthread_mutex_lock(sta->m);
-						if (execl("C:/Program Files/curl/src/curl.exe", "C:/Program Files/curl/src/curl.exe", "-s", "-X", "POST", "--data-urlencode", sql, "projects.cse.tamu.edu/minkjaco/curlTest.php", (char *)NULL) == -1) {
-							printf("Query failed from %d\n", sta->fd);
-						}
-						pthread_mutex_unlock(sta->m);
-						serialport_flush(sta->fd);
-						break;
-					}
-					else
-						tries--;
-				}
-			}
-		}
+		ReadDoubleDir(sta);
 	}
 	else {
 		printf("Serial %d invalid direction\n", sta->type);
@@ -210,7 +226,6 @@ int main() {
 	}
 	
 	// Clean up
-	mysql_close(db);
 	pthread_mutex_destroy(&m);
 	free(threads);
 	free(targs);
