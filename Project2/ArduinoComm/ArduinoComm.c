@@ -1,7 +1,6 @@
 #include <pthread.h>
 #include <stdio.h>
 #include "Include/arduino-serial-lib.h"
-#include "Include/Connector/include/mysql.h"
 
 #define		NUM_LOCATIONS		1
 #define		MAX_LOCATIONS		7
