@@ -7,18 +7,19 @@ int exitEchoPin = 3;
 int m_location;
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
   while(!Serial);
   
   pinMode(enterTrigPin, OUTPUT);
   pinMode(enterEchoPin, INPUT);
   pinMode(exitTrigPin, OUTPUT);
   pinMode(exitEchoPin, INPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
 
   while (Serial.available() <= 0);
   Serial.flush();
-  
-  m_location = 0;
+    
+  m_location = 7;
   Serial.println(m_location);
 }
 
