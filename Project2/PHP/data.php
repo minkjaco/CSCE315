@@ -115,9 +115,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $_POST["firstDate"] != "" && $_POST[
 {
 	$firstDate = $_POST["firstDate"];
 	$secondDate = $_POST["secondDate"];
-	/*$sql = "SELECT COUNT(time) FROM `".$table."` WHERE  time BETWEEN '".$firstDate." 00:00:01' AND '".$secondDate." 23:59:59'";
-	$selectedNum = $connect->SRQuery($sql);
-	echo("<p1>Total traffic counted between ".formatDate($firstDate)." and ".formatDate($secondDate)." </p1><span class=\"data_val\">".$selectedNum."</span><br><br>");*/
+	
+	
+	
 	$start = strtotime($firstDate);
 	$end = strtotime($secondDate);
 	$days_between = ceil(abs($end - $start) / 86400);
@@ -133,6 +133,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $_POST["firstDate"] != "" && $_POST[
 		$sum += $counts[$i];
 		$current = strtotime('+1 day',$current);
 	}
+	
+	
+	//HOURLY AND DAILY AVERAGES
 	if($days_between > 1)
 			{ $dailyAverage = $sum / $days_between; }
 		else { $dailyAverage = $sum; }
@@ -143,6 +146,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $_POST["firstDate"] != "" && $_POST[
 	$temp = $days_between;
 	if($days_between <= 1) { $temp = 1; } 
 	$hourlyAverage = $sum / ($temp * 24);
+	//HOURLY AND DAILY AVERAGES
+	
+	
 	echo("<p1>Total traffic counted between ".formatDate($firstDate)." and ".formatDate($secondDate)." </p1><span class=\"data_val\">".$sum."</span><br><br>");
 	echo("<p1>Daily Average</p1>");
 	echo("<span class=\"data_val\">".number_format($dailyAverage,2,'.','')."</span><br><br>");
@@ -229,7 +235,7 @@ echo("
 
         var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
 
-        chart.draw(data, options);
+        chart.draw(data, options);jg
       }
     </script>
   </head>
@@ -238,9 +244,212 @@ echo("
   </body>
 </html>");
 }else{ echo("<p1>Please select a valid range</p1>"); }
+
+echo("</div>");
+
+//1ST GRAPH CODE ENDS HERE
+
+//SECOND GRAPH BELOW
+
+echo("<h2>");
+	echo("Date Range");
+echo("</h2>");
+echo("
+<div class=\"main\">
+<form action=\"data.php\" method=\"post\">
+	<p1>From </p1>
+	<input name=\"startDate\" type=\"date\" class=\"form_entry\">
+	<p1> To Today</p1>
+	<input type=\"submit\" value=\"Submit\" class=\"button\">
+</form>
+<br>
+");
+
+if ($_SERVER["REQUEST_METHOD"] == "POST" && $_POST["startDate"] != "") 
+{
+	$startDate = $_POST["startDate"];
+	
+	
+	
+	$start = strtotime($startDate);
+	
+	$evaluationDay = time();
+	//$days_between = ceil(abs( time() - $start) / 86400);
+	
+	
+	$averages = [[]];
+
+
+	
+	
+	for($i = 0; $i < 7; $i++){
+		
+		$weeksTabulated = 0;
+		
+		$currHour = 0;
+	
+	
+		while(ceil($evaluationDay - $start) >= 0){
+			//check the hours (for loop)
+			
+			for($j = 0; $j < 24; $j++){
+				$averages[$i[$j]] =  "SELECT COUNT(*) FROM `".$table."` WHERE ".$table->Timestamp." BETWEEN '".$evaluationDay.$j.".:00:00' AND '".$evaluationDay.".".($j+1).".:00:00'";
+				
+			}
+		
+			
+		
+			//add to counter
+			$weeksTabulated++;
+		
+			//decrement backwards
+			$evaluationDay->modify('-1 week');
+		
+		
+		}
+		for($j = 0; $j < 24; $j++){
+			$averages[$i[$j]] = $averages[$i[$j]]/$weeksTabulated;
+		}
+	
+	
+		
+	}
+	
+	$days = array();
+	$counts = array();
+	$sum = 0;
+	$current = $start;
+	for($i = 0; $i < $days_between + 1; $i++)
+	{
+		$days[$i] = formatDate(gmdate("Y-m-d",$current));
+		$sql = "SELECT COUNT(*) FROM `".$table."` WHERE TimeStamp LIKE '".gmdate("Y-m-d",$current)."%' AND Entering=1;";
+		$counts[$i] = $connect->SRQuery($sql);
+		$sum += $counts[$i];
+		$current = strtotime('+1 day',$current);
+	}
+	
+	
+	//HOURLY AND DAILY AVERAGES
+	/*
+	if($days_between > 1)
+			{ $dailyAverage = $sum / $days_between; }
+		else { $dailyAverage = $sum; }
+	$weeks_between = $days_between / 7;
+	if($weeks_between >= 1)
+			{ $weeklyAverage = $sum / $weeks_between; }
+		else { $weeklyAverage = $sum; }
+	$temp = $days_between;
+	if($days_between <= 1) { $temp = 1; } 
+	$hourlyAverage = $sum / ($temp * 24);
+	*/
+	//HOURLY AND DAILY AVERAGES
+	
+	
+	echo("<p1>Total traffic counted between ".formatDate($firstDate)." and ".formatDate($secondDate)." </p1><span class=\"data_val\">".$sum."</span><br><br>");
+	echo("<p1>Daily Average</p1>");
+	echo("<span class=\"data_val\">".number_format($dailyAverage,2,'.','')."</span><br><br>");
+	echo("<p1>Weekly Average</p1>");
+	echo("<span class=\"data_val\">".number_format($weeklyAverage,2,'.','')."</span><br><br>");
+	echo("<p1>Hourly Average</p1>");
+	echo("<span class=\"data_val\">".number_format($hourlyAverage,2,'.','')."</span><br><br>");
+	echo("
+<html>
+  <head>
+    <script type=\"text/javascript\" src=\"https://www.gstatic.com/charts/loader.js\"></script>
+    <script type=\"text/javascript\">
+	var vag = 20000;
+      google.charts.load('current', {'packages':['corechart']});
+      google.charts.setOnLoadCallback(drawChart);
+
+      function drawChart() {
+        var data = google.visualization.arrayToDataTable([
+          ['Date', 'Traffic'],");
+		for($i = 0; $i < $days_between + 1; $i++)
+		{
+			echo("['".$days[$i]."', ".$counts[$i]."],");
+		}
+echo("
+        ]);
+
+        var options = {
+			fontSize: 16,
+			fontName: 'Helvetica',
+			color: '#646464',
+			titleTextStyle: { 
+				color: '#646464',
+				fontName: 'Helvetica',
+				fontSize: '20'
+			},
+			backgroundColor: '#efefef',	
+			legend: { position: 'bottom' },
+			hAxis: {
+				textStyle: {
+					color: '#646464',
+					fontName: 'Helvetica',
+					fontSize: 16
+				},
+				title: 'Dates',
+				titleTextStyle: { 
+				color: '#646464',
+				fontName: 'Helvetica',
+				fontSize: '17',
+				italic: 0
+				}
+			},
+			vAxis: {
+				textStyle: {
+					color: '#646464',
+					fontName: 'Helvetica',
+					fontSize: 16
+				},
+				baselineColor: '#646464',
+				title: 'Traffic',
+				titleTextStyle: { 
+				color: '#646464',
+				fontName: 'Helvetica',
+				fontSize: '17',
+				italic: 0
+				},
+				minValue: 0
+			},
+			series: [
+			{color: 'red', visibleInLegend: false}
+			],
+			pointShape: 'diamond',
+			pointSize: 4,
+			title: 'Traffic from ".formatDate($firstDate)." to ".formatDate($secondDate)."',
+			tooltip: {
+				textStyle: {
+					color: '#646464',
+					bold: 0,
+					fontSize: 16
+				},
+				backgroundColor: '#646464'
+			}
+				
+        };
+
+        var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
+
+        chart.draw(data, options);jg
+      }
+    </script>
+  </head>
+  <body>
+    <div id=\"curve_chart\" style=\"width: 80vw; height: 500px\"></div>
+	
+  </body>
+</html>");
+
+}else{ echo("<p1>Please select a valid range</p1>"); }
 }
 echo("</div>");
+
 ?>
+
+
+
+
 <br><br>
 <div style = "text-align:center">
 		<a href="admin.php" class="admin_option">Admin Page</a>
