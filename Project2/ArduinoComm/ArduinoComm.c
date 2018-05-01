@@ -5,17 +5,25 @@
 #include <unistd.h>
 #include <errno.h>
 
+// Number of locations to monitor
 #define		NUM_LOCATIONS		1
-#define		MAX_LOCATIONS		7
+// Number of locations the RasberryPi can handle
+#define		MAX_LOCATIONS		4
 
+// Definitions for single-direction lanes vs. entry-exit lanes
 #define 	SINGLE_DIR			0
 #define		DOUBLE_DIR			1
 
+// byte-code for handoff procedure
 #define		START				0x01
 
+// Specifies max trigger distance for the sensors
 #define		TRIG_DIST			400
+
+// Serial communication rate; must match number in .ino
 #define		RATE				9600
 
+// Basic buffer size definition
 #define		MAX_BUF_SIZE		20		
 
 // List of ports to which Arduinos are connected
@@ -25,12 +33,13 @@ char *ports[] = { "/dev/ttyACM0" };
 // Match type of enter/exit to the port name
 int types[] = { SINGLE_DIR };
 
-char database[] = "minkjaco";
-char *columns[] = { "column1", "column2" };
+// MySQL table information
+char table[] = "traffic";
+char *columns[] = { "ID", "ENTRY-EXIT", "Entering", "Exiting", "Location", "Timestamp" };
 
 /* SerialThreadArgs
  * port: /dev/tty/xxx is the name of the usb serial port
- * fd: reference to the serial port by integer
+ * ser: reference to the serial port as a file
  * loc: location of the Arduino by integer (0 - 9 inclusive)
  * type: type data recording required for this location
  * db: reference to database for pushing
@@ -44,7 +53,13 @@ typedef struct SerialThreadArgs {
 	pthread_mutex_t *m;
 } SerialThreadArgs;
 
+/* Function to read traffic in single-direction lanes
+ * Preconditions: Arduino is properly connected, table definition is 
+ * correctly input
+ * Postconditions: None, infinite loop
+*/ 
 void ReadSingleDir(SerialThreadArgs *sta) {
+	// initialize helper data
 	char *buf = calloc(MAX_BUF_SIZE + 1, 1);
 	int res = 0;
 	char *query = calloc(200 + 1, 1);
@@ -53,31 +68,35 @@ void ReadSingleDir(SerialThreadArgs *sta) {
 	int readB = 1;
 	
 	while (1) {
+		// read serial port
 		int i = 0;
 		do {
 			fread(buf + i, sizeof(char), 1, sta->ser);
 		} while (buf[i++] != '\n');
 		buf[i] = '\0';
 		
+		// Check if a car has left the front of the sensor after being read
 		float val = atof(buf + 3);
 		if (!readA && buf[0] == 'A' && val >= TRIG_DIST)
 			readA = 1;
 		else if (!readB && buf[0] == 'B' && val >= TRIG_DIST)
 			readB = 1;
 		
+		// If A direction is read, send and wait for car to leave
 		if (readA && val < TRIG_DIST) {
-			sprintf(query, "INSERT INTO `%s`(`%s`, `%s`) VALUES(NULL, %d, true, false, CURRENT_TIMESTAMP)", database, columns[0], columns[1], sta->loc);
+			sprintf(query, "INSERT INTO `%s`(`%s`, `%s`, `%s`, `%s`, `%s`, `%s`) VALUES(NULL, true, true, false, %d, CURRENT_TIMESTAMP)", table, columns[0], columns[1], columns[2], columns[3], columns[4], columns[5], sta->loc);
 			pthread_mutex_lock(sta->m);
-			if (execl("C:/Program Files/curl/src/curl.exe", "C:/Program Files/curl/src/curl.exe", "-s", "-X", "POST", "--data-urlencode", query, "projects.cse.tamu.edu/minkjaco/curlTest.php", (char *)NULL) == -1) {
+			if (execl("curl.exe", "curl.exe", "-s", "-X", "POST", "--data-urlencode", query, "projects.cse.tamu.edu/minkjaco/curlTest.php", (char *)NULL) == -1) {
 				printf("Query failed from %d: %d\n", sta->loc, errno);
 			}
 			pthread_mutex_unlock(sta->m);
 			readA = 0;
 		}
+		// If B direction is read, send and wait for car to leave
 		else if (readB && val < TRIG_DIST) {
-			sprintf(query, "INSERT INTO `%s`(`%s`, `%s`) VALUES(NULL, %d, false, true, CURRENT_TIMESTAMP)", database, columns[0], columns[1], sta->loc);
+			sprintf(query, "INSERT INTO `%s`(`%s`, `%s`, `%s`, `%s`, `%s`, `%s`) VALUES(NULL, false, false, true, %d, CURRENT_TIMESTAMP)", table, columns[0], columns[1], columns[2], columns[3], columns[4], columns[5], sta->loc);
 			pthread_mutex_lock(sta->m);
-			if (execl("C:/Program Files/curl/src/curl.exe", "C:/Program Files/curl/src/curl.exe", "-s", "-X", "POST", "--data-urlencode", query, "projects.cse.tamu.edu/minkjaco/curlTest.php", (char *)NULL) == -1) {
+			if (execl("curl.exe", "curl.exe", "-s", "-X", "POST", "--data-urlencode", query, "projects.cse.tamu.edu/minkjaco/curlTest.php", (char *)NULL) == -1) {
 				printf("Query failed from %d: %d\n", sta->loc, errno);
 			}
 			pthread_mutex_unlock(sta->m);
@@ -86,19 +105,26 @@ void ReadSingleDir(SerialThreadArgs *sta) {
 	}
 }
 
+/* Function to read traffic entry-exit when entry and exit occur in the same lane
+ * Preconditions: Arduinos are properly connected, table definition is loaded
+ * Postconditions: None, infinite loop
+*/
 void ReadDoubleDir(SerialThreadArgs *sta) {
+	// Initialize helper data
 	char *buf = calloc(MAX_BUF_SIZE + 1, 1);
 	char *buf2 = calloc(MAX_BUF_SIZE + 1, 1);
 	int res = 0;
 	char *query = calloc(100 + 1, 1);
 	
 	while (1) {
+		// perform read on the serial port
 		int i = 0;
 		do {
 			fread(buf + i, sizeof(char), 1, sta->ser);
 		} while (buf[i++] != '\n');
 		buf[i] = '\0';
 		
+		// Normal bi-directional sensing algorithm
 		if (buf[0] != 'A')
 			continue;
 		if (atof(buf + 3) < TRIG_DIST) {
@@ -115,9 +141,10 @@ void ReadDoubleDir(SerialThreadArgs *sta) {
 					continue;
 				}
 				if (atof(buf2 + 3) < TRIG_DIST) {
-					sprintf(query, "INSERT INTO `%s`(`%s`, `%s`) VALUES(NULL, %d, true, false, CURRENT_TIMESTAMP)", database, columns[0], columns[1], sta->loc);
+					// car sensed in correct direction; send
+					sprintf(query, "INSERT INTO `%s`(`%s`, `%s`, `%s`, `%s`, `%s`, `%s`) VALUES(NULL, true, true, false, %d, CURRENT_TIMESTAMP)", table, columns[0], columns[1], columns[2], columns[3], columns[4], columns[5], sta->loc);
 					pthread_mutex_lock(sta->m);
-					if (execl("C:/Program Files/curl/src/curl.exe", "C:/Program Files/curl/src/curl.exe", "-s", "-X", "POST", "--data-urlencode", query, "projects.cse.tamu.edu/minkjaco/curlTest.php", (char *)NULL) == -1) {
+					if (execl("curl.exe", "curl.exe", "-s", "-X", "POST", "--data-urlencode", query, "projects.cse.tamu.edu/minkjaco/curlTest.php", (char *)NULL) == -1) {
 						printf("Query failed from %d: %d\n", sta->loc, errno);
 					}
 					pthread_mutex_unlock(sta->m);
@@ -134,6 +161,8 @@ void ReadDoubleDir(SerialThreadArgs *sta) {
 /* void *serialThread (void *args)
  * Function that handles data collection from an Arduino
  * and pushes to the MySQL database
+ * Preconditions: Arduinos have been connected
+ * Postconditions: each Arduino is performing a serial read in its correct style
  */ 
 void *serialThread(void *args) {
 	// Cars exit in one location and enter in another
@@ -156,6 +185,12 @@ void *serialThread(void *args) {
 	}
 }
 
+/* int main()
+ * Preconditions: Arduino is connected, ports are properly specified,
+ * table definition is properly specified
+ * Postconditions: Arduinos are connected via serial port and the serial read
+ * procedures are started in separate threads
+*/
 int main() {
 	// Don't break the RPi
 	if (NUM_LOCATIONS > MAX_LOCATIONS) {
