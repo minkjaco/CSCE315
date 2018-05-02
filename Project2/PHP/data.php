@@ -277,7 +277,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $_POST["startDate"] != "")
 	//$days_between = ceil(abs( time() - $start) / 86400);
 	
 	
-	$averages = [[]];
+	$averages = array(array());;
 
 
 	
@@ -293,7 +293,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $_POST["startDate"] != "")
 			//check the hours (for loop)
 			
 			for($j = 0; $j < 24; $j++){
-				$averages[$i[$j]] =  "SELECT COUNT(*) FROM `".$table."` WHERE ".$table->Timestamp." BETWEEN '".$evaluationDay.$j.".:00:00' AND '".$evaluationDay.".".($j+1).".:00:00'";
+				$averages[$i][$j] =  "SELECT COUNT(*) FROM `".$table."` WHERE ".$table->Timestamp." BETWEEN '".$evaluationDay.$j.".:00:00' AND '".$evaluationDay.".".($j+1).".:00:00'";
 				
 			}
 		
@@ -308,13 +308,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $_POST["startDate"] != "")
 		
 		}
 		for($j = 0; $j < 24; $j++){
-			$averages[$i[$j]] = $averages[$i[$j]]/$weeksTabulated;
+			$averages[$i][$j] = $averages[$i][$j]/$weeksTabulated;
+			//averages tabulated
 		}
 	
+		
 	
 		
 	}
 	
+	/*
 	$days = array();
 	$counts = array();
 	$sum = 0;
@@ -327,6 +330,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $_POST["startDate"] != "")
 		$sum += $counts[$i];
 		$current = strtotime('+1 day',$current);
 	}
+	*/
 	
 	
 	//HOURLY AND DAILY AVERAGES
@@ -344,15 +348,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $_POST["startDate"] != "")
 	*/
 	//HOURLY AND DAILY AVERAGES
 	
+
 	
-	echo("<p1>Total traffic counted between ".formatDate($firstDate)." and ".formatDate($secondDate)." </p1><span class=\"data_val\">".$sum."</span><br><br>");
-	echo("<p1>Daily Average</p1>");
-	echo("<span class=\"data_val\">".number_format($dailyAverage,2,'.','')."</span><br><br>");
-	echo("<p1>Weekly Average</p1>");
-	echo("<span class=\"data_val\">".number_format($weeklyAverage,2,'.','')."</span><br><br>");
-	echo("<p1>Hourly Average</p1>");
-	echo("<span class=\"data_val\">".number_format($hourlyAverage,2,'.','')."</span><br><br>");
+	echo("<p1>Average traffic by hour between ".$startDate." and Today </p1><br><br>");
+	//instead of today find timestamp for current time
+	
+	
 	echo("
+	
 <html>
   <head>
     <script type=\"text/javascript\" src=\"https://www.gstatic.com/charts/loader.js\"></script>
@@ -363,16 +366,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $_POST["startDate"] != "")
 
       function drawChart() {
         var data = google.visualization.arrayToDataTable([
-          ['Date', 'Traffic'],");
-		for($i = 0; $i < $days_between + 1; $i++)
+          ['Date', 'Traffic', 'Traffic2' , 'Traffic3' , Traffic4', Traffic5', 'Traffic6', 'Traffic7'],");
+		for($i = 0; $i < 24; $i++)
 		{
-			echo("['".$days[$i]."', ".$counts[$i]."],");
+			
+			echo("['".$i."', ".$averages[0][$i].", ".$averages[1][$i].", ".$averages[2][$i].", ".$averages[3][$i].", ".$averages[4][$i].", ".$averages[5][$i].", ".$averages[6][$i]."],");
 		}
 echo("
         ]);
 
         var options = {
 			fontSize: 16,
+			fontName: 'Helvetica',
 			fontName: 'Helvetica',
 			color: '#646464',
 			titleTextStyle: { 
@@ -388,7 +393,7 @@ echo("
 					fontName: 'Helvetica',
 					fontSize: 16
 				},
-				title: 'Dates',
+				title: 'Days of the week (0 = Today)',
 				titleTextStyle: { 
 				color: '#646464',
 				fontName: 'Helvetica',
@@ -413,11 +418,11 @@ echo("
 				minValue: 0
 			},
 			series: [
-			{color: 'red', visibleInLegend: false}
+			{color: 'red', visibleInLegend: true}
 			],
 			pointShape: 'diamond',
 			pointSize: 4,
-			title: 'Traffic from ".formatDate($firstDate)." to ".formatDate($secondDate)."',
+			title: 'Traffic from ".formatDate($start)." to Today',
 			tooltip: {
 				textStyle: {
 					color: '#646464',
@@ -426,6 +431,7 @@ echo("
 				},
 				backgroundColor: '#646464'
 			}
+			
 				
         };
 
