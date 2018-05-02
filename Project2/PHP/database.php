@@ -85,6 +85,7 @@ class Database
 		for ($i = 0; $i < $num; $i++) {
 			if ($this->connection->query($sql) !== TRUE)
 				echo("error<br>\n");
+			else break;
 		}
 	}
 	

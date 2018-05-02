@@ -24,7 +24,8 @@
 #define		RATE				9600
 
 // Basic buffer size definition
-#define		MAX_BUF_SIZE		20		
+#define		MAX_BUF_SIZE		20
+#define		QUERY_SIZE			200 + 1		
 
 // List of ports to which Arduinos are connected
 // Must be input automatically
@@ -62,7 +63,7 @@ void ReadSingleDir(SerialThreadArgs *sta) {
 	// initialize helper data
 	char *buf = calloc(MAX_BUF_SIZE + 1, 1);
 	int res = 0;
-	char *query = calloc(200 + 1, 1);
+	char *query = calloc(QUERY_SIZE, 1);
 	
 	int readA = 1;
 	int readB = 1;
@@ -114,7 +115,7 @@ void ReadDoubleDir(SerialThreadArgs *sta) {
 	char *buf = calloc(MAX_BUF_SIZE + 1, 1);
 	char *buf2 = calloc(MAX_BUF_SIZE + 1, 1);
 	int res = 0;
-	char *query = calloc(100 + 1, 1);
+	char *query = calloc(QUERY_SIZE, 1);
 	
 	while (1) {
 		// perform read on the serial port
