@@ -86,7 +86,7 @@ class Database
 		$row = $result->fetch_assoc();
 		$value = $row[$val];
 		return $value;
-	}
+
 	
 	//----------------------------------------------------------
 	// Function: getGraph
