@@ -1,0 +1,73 @@
+-- phpMyAdmin SQL Dump
+-- version 4.4.15.10
+-- https://www.phpmyadmin.net
+--
+-- Host: database.cs.tamu.edu
+-- Generation Time: May 03, 2018 at 12:15 AM
+-- Server version: 5.5.56-MariaDB
+-- PHP Version: 5.4.16
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Database: `darwin.stephanus31`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `Project2`
+--
+
+CREATE TABLE IF NOT EXISTS `Project2` (
+  `Index` int(11) NOT NULL,
+  `Location` varchar(32) NOT NULL,
+  `Enter` tinyint(1) NOT NULL,
+  `Exit` tinyint(1) NOT NULL,
+  `Timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `Project2`
+--
+
+INSERT INTO `Project2` (`Index`, `Location`, `Enter`, `Exit`, `Timestamp`) VALUES
+(1, 'A', 1, 0, '2018-04-19 16:37:19'),
+(2, 'A', 1, 0, '2018-04-19 16:38:52'),
+(3, 'B', 1, 0, '2018-04-19 16:38:52'),
+(4, 'A', 0, 1, '2018-04-19 16:39:29'),
+(5, 'B', 0, 1, '2018-04-19 16:39:29'),
+(6, 'A', 1, 0, '2018-04-19 16:39:54'),
+(7, 'B', 1, 0, '2018-04-19 16:39:54'),
+(9, 'A', 0, 1, '2018-04-19 16:40:40'),
+(10, 'B', 0, 1, '2018-04-19 16:40:40');
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `Project2`
+--
+ALTER TABLE `Project2`
+  ADD PRIMARY KEY (`Index`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `Project2`
+--
+ALTER TABLE `Project2`
+  MODIFY `Index` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=11;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
