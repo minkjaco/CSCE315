@@ -81,11 +81,11 @@ class Database
 	// Postcondition: Query is sent to the database
 	//----------------------------------------------------------
 	
-	public function genericQuery($sql, $num) {
-		for ($i = 0; $i < $num; $i++) {
-			if ($this->connection->query($sql) !== TRUE)
-				echo("error<br>\n");
-		}
+	public function genericQuery($sql, $val, $num) {
+		$result = $this->connection->query($sql);
+		$row = $result->fetch_assoc();
+		$value = $row[$val];
+		return $value;
 	}
 	
 	//----------------------------------------------------------
